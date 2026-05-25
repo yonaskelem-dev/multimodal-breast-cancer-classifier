@@ -14,42 +14,49 @@ router = APIRouter()
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"}
 
+
 def validate_image(file: UploadFile):
     ext = os.path.splitext(file.filename)[1].lower()
+
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid file type '{ext}'. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"
+            detail=f"Invalid file type {ext}. Allowed: {ALLOWED_EXTENSIONS}"
         )
+
 
 @router.post("/")
 async def predict(
-    mammogram: UploadFile = File(..., description="Mammogram image file"),
-    ultrasound: UploadFile = File(..., description="Ultrasound image file"),
-    patient_id: str = Form(default=""),
+    mammogram: UploadFile = File(...),
+    ultrasound: UploadFile = File(...),
+    patient_id: str = Form(default="")
 ):
+
+    # Validate files
     validate_image(mammogram)
     validate_image(ultrasound)
 
     mammo_bytes = await mammogram.read()
     us_bytes = await ultrasound.read()
 
-    if len(mammo_bytes) == 0 or len(us_bytes) == 0:
-        raise HTTPException(status_code=400, detail="Uploaded files cannot be empty.")
+    if not mammo_bytes or not us_bytes:
+        raise HTTPException(status_code=400, detail="Empty file uploaded")
 
     try:
+        # Model inference
         result = run_prediction(mammo_bytes, us_bytes)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Model inference failed: {str(e)}")
 
-    # Generate patient ID if not provided
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Inference failed: {str(e)}")
+
+    # Auto-generate patient ID if empty
     if not patient_id.strip():
         patient_id = f"PAT-{str(uuid.uuid4())[:8].upper()}"
 
-    # Generate AI explanation
+    # Add explanation
     result["explanation"] = generate_explanation(result)
 
-    # Save to history
+    # Save history (safe wrapper)
     try:
         entry = save_prediction(
             patient_id=patient_id,
@@ -66,13 +73,15 @@ async def predict(
                 "ultrasound_malignant": result["ultrasound_malignant"],
             }
         )
-        result["history_id"] = entry["id"]
+
+        result["history_id"] = entry.get("id")
+        result["timestamp"] = entry.get("timestamp")
         result["patient_id"] = patient_id
-        result["timestamp"] = entry["timestamp"]
-    except Exception as e:
+
+    except Exception:
         result["history_id"] = None
-        result["patient_id"] = patient_id
         result["timestamp"] = None
+        result["patient_id"] = patient_id
 
     return JSONResponse(content=result)
 
@@ -84,22 +93,14 @@ def generate_explanation(result: dict) -> str:
     u_mal = result["ultrasound_malignant"]
 
     if pred == "MALIGNANT":
-        level = "high" if conf > 80 else "moderate"
         return (
-            f"The multimodal AI system has detected {level}-confidence malignancy indicators "
-            f"across both imaging modalities. The mammogram analysis shows {m_mal:.1f}% malignant "
-            f"probability, while the ultrasound analysis shows {u_mal:.1f}% malignant probability. "
-            f"The late fusion ensemble model combines these signals with an overall confidence of "
-            f"{conf:.1f}%. Clinical correlation and biopsy are strongly recommended for definitive diagnosis. "
-            f"This result should be reviewed by a qualified radiologist or oncologist."
+            f"Malignancy detected with {conf:.1f}% confidence. "
+            f"Mammogram malignancy: {m_mal:.1f}%, Ultrasound malignancy: {u_mal:.1f}%. "
+            f"Clinical confirmation (biopsy) is recommended."
         )
     else:
-        level = "high" if conf > 80 else "moderate"
         return (
-            f"The multimodal AI system indicates {level}-confidence benign tissue characteristics "
-            f"across both imaging modalities. The mammogram analysis shows {100 - m_mal:.1f}% benign "
-            f"probability, while the ultrasound analysis shows {100 - u_mal:.1f}% benign probability. "
-            f"The late fusion ensemble model combines these signals with an overall confidence of "
-            f"{conf:.1f}%. Routine follow-up screening is advised. While the AI predicts benign "
-            f"patterns, regular clinical examination remains essential."
+            f"Benign result with {conf:.1f}% confidence. "
+            f"Mammogram malignancy: {m_mal:.1f}%, Ultrasound malignancy: {u_mal:.1f}%. "
+            f"Routine screening recommended."
         )
