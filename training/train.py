@@ -14,11 +14,8 @@ from sklearn.utils.class_weight import compute_class_weight
 from collections import Counter
 import numpy as np
 
-# ─────────────────────────────────────────────
-# Config
-# ─────────────────────────────────────────────
-DATA_DIR   = os.path.join(os.path.dirname(__file__), "..", "data")
-MODELS_DIR = os.path.join(os.path.dirname(__file__), "..", "models")
+PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..")
+MODELS_DIR   = os.path.join(PROJECT_ROOT, "models")
 os.makedirs(MODELS_DIR, exist_ok=True)
 
 IMG_SIZE   = 224
@@ -29,9 +26,6 @@ DEVICE     = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 print(f"Device: {DEVICE}")
 
-# ─────────────────────────────────────────────
-# Transforms
-# ─────────────────────────────────────────────
 train_transform = transforms.Compose([
     transforms.Resize((IMG_SIZE, IMG_SIZE)),
     transforms.RandomHorizontalFlip(),
@@ -42,11 +36,8 @@ train_transform = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-# ─────────────────────────────────────────────
-# Datasets
-# ─────────────────────────────────────────────
-mammo_dir = os.path.join(DATA_DIR, "mammogram_images")
-us_dir    = os.path.join(DATA_DIR, "ultrasound_images")
+mammo_dir = os.path.join(PROJECT_ROOT, "mammogram_images")
+us_dir    = os.path.join(PROJECT_ROOT, "ultrasound_images")
 
 if not os.path.isdir(mammo_dir):
     print(f"ERROR: Mammogram data not found at {mammo_dir}")
@@ -65,9 +56,6 @@ us_loader     = DataLoader(us_dataset,    batch_size=BATCH_SIZE, shuffle=True,  
 print(f"\nMammogram → classes: {mammo_dataset.classes}, dist: {Counter(mammo_dataset.targets)}")
 print(f"Ultrasound → classes: {us_dataset.classes},    dist: {Counter(us_dataset.targets)}")
 
-# ─────────────────────────────────────────────
-# Class weights
-# ─────────────────────────────────────────────
 def make_weights(dataset):
     labels = np.array(dataset.targets)
     cw = compute_class_weight(class_weight="balanced", classes=np.unique(labels), y=labels)
@@ -76,9 +64,6 @@ def make_weights(dataset):
 mammo_weights = make_weights(mammo_dataset)
 us_weights    = make_weights(us_dataset)
 
-# ─────────────────────────────────────────────
-# Models
-# ─────────────────────────────────────────────
 def build_resnet18():
     model = models.resnet18(weights="IMAGENET1K_V1")
     model.fc = nn.Linear(model.fc.in_features, 2)
@@ -96,9 +81,6 @@ us_optimizer    = optim.Adam(us_model.parameters(),    lr=LR, weight_decay=1e-4)
 mammo_scheduler = optim.lr_scheduler.StepLR(mammo_optimizer, step_size=8, gamma=0.5)
 us_scheduler    = optim.lr_scheduler.StepLR(us_optimizer,    step_size=8, gamma=0.5)
 
-# ─────────────────────────────────────────────
-# Training loop
-# ─────────────────────────────────────────────
 def train(model, loader, optimizer, criterion, scheduler, name, epochs):
     print(f"\n{'='*50}")
     print(f"Training: {name}")
@@ -125,9 +107,6 @@ def train(model, loader, optimizer, criterion, scheduler, name, epochs):
 train(mammo_model, mammo_loader, mammo_optimizer, mammo_criterion, mammo_scheduler, "Mammogram ResNet18", EPOCHS)
 train(us_model,    us_loader,    us_optimizer,    us_criterion,    us_scheduler,    "Ultrasound ResNet18", EPOCHS)
 
-# ─────────────────────────────────────────────
-# Save
-# ─────────────────────────────────────────────
 mammo_path = os.path.join(MODELS_DIR, "mammo_model.pth")
 us_path    = os.path.join(MODELS_DIR, "us_model.pth")
 

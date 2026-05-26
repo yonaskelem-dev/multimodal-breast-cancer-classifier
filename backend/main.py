@@ -11,11 +11,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# ✅ FIXED CORS (IMPORTANT)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # <- FIX FOR YOUR ERROR
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

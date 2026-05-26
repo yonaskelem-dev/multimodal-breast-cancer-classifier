@@ -13,9 +13,9 @@ build/
 # Models (large binary files)
 models/*.pth
 
-# Data
-data/mammogram_images/
-data/ultrasound_images/
+# Training data (large image folders at project root)
+mammogram_images/
+ultrasound_images/
 
 # Node / React
 frontend/node_modules/

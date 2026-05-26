@@ -21,7 +21,7 @@ def remove_entry(entry_id: int):
         raise HTTPException(status_code=404, detail="Entry not found")
     return {"message": "Deleted successfully"}
 
-@router.delete("/")
+@router.delete("/clear")
 def wipe_history():
     clear_history()
     return {"message": "History cleared"}

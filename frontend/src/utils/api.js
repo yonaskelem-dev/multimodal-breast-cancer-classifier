@@ -1,18 +1,17 @@
 import axios from "axios";
 
-const API_BASE = "https://multimodal-breast-cancer-classifier-1.onrender.com";
+const API_BASE = process.env.REACT_APP_API_URL || "";
+
 const api = axios.create({
   baseURL: API_BASE,
-  timeout: 120000, // 2 minutes for model inference
+  timeout: 120000,
 });
 
-/**
- * Run multimodal prediction
- * @param {File} mammogramFile
- * @param {File} ultrasoundFile
- * @param {string} patientId
- */
-export async function runPrediction(mammogramFile, ultrasoundFile, patientId = "") {
+export async function runPrediction(
+  mammogramFile,
+  ultrasoundFile,
+  patientId = "",
+) {
   const formData = new FormData();
   formData.append("mammogram", mammogramFile);
   formData.append("ultrasound", ultrasoundFile);
@@ -24,35 +23,28 @@ export async function runPrediction(mammogramFile, ultrasoundFile, patientId = "
   return response.data;
 }
 
-/**
- * Fetch prediction history
- * @param {string} patientId - optional filter
- */
 export async function fetchHistory(patientId = "") {
-  const url = patientId
-    ? `/api/history/?patient_id=${encodeURIComponent(patientId)}`
+  const url =
+    patientId ?
+      `/api/history/?patient_id=${encodeURIComponent(patientId)}`
     : "/api/history/";
   const response = await api.get(url);
   return response.data;
 }
 
-/**
- * Delete a history entry by ID
- */
 export async function deleteHistoryEntry(id) {
   const response = await api.delete(`/api/history/${id}`);
   return response.data;
 }
 
-/**
- * Export PDF report
- */
 export async function exportPDFReport(reportData) {
   const response = await api.post("/api/report/generate", reportData, {
     responseType: "blob",
   });
 
-  const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+  const url = window.URL.createObjectURL(
+    new Blob([response.data], { type: "application/pdf" }),
+  );
   const link = document.createElement("a");
   link.href = url;
   const contentDisposition = response.headers["content-disposition"];
@@ -68,9 +60,6 @@ export async function exportPDFReport(reportData) {
   window.URL.revokeObjectURL(url);
 }
 
-/**
- * Health check
- */
 export async function checkHealth() {
   const response = await api.get("/api/health");
   return response.data;
