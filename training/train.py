@@ -20,7 +20,7 @@ os.makedirs(MODELS_DIR, exist_ok=True)
 
 IMG_SIZE   = 224
 BATCH_SIZE = 16
-EPOCHS     = 25
+EPOCHS     = 15
 LR         = 1e-4
 DEVICE     = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -50,8 +50,21 @@ if not os.path.isdir(us_dir):
 mammo_dataset = datasets.ImageFolder(mammo_dir, transform=train_transform)
 us_dataset    = datasets.ImageFolder(us_dir,    transform=train_transform)
 
-mammo_loader  = DataLoader(mammo_dataset, batch_size=BATCH_SIZE, shuffle=True,  num_workers=2, pin_memory=True)
-us_loader     = DataLoader(us_dataset,    batch_size=BATCH_SIZE, shuffle=True,  num_workers=2, pin_memory=True)
+mammo_loader = DataLoader(
+    mammo_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+    num_workers=0,
+    pin_memory=False
+)
+
+us_loader = DataLoader(
+    us_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+    num_workers=0,
+    pin_memory=False
+)
 
 print(f"\nMammogram → classes: {mammo_dataset.classes}, dist: {Counter(mammo_dataset.targets)}")
 print(f"Ultrasound → classes: {us_dataset.classes},    dist: {Counter(us_dataset.targets)}")
