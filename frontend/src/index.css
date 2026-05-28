@@ -8,11 +8,11 @@
   --violet: #7c3aed;
   --violet-dark: #4c1d95;
   --amber: #f59e0b;
-  --bg-dark: #0a0a0f;
-  --surface-dark: #12121a;
-  --surface-dark-2: #1a1a26;
-  --text-primary: #f9fafb;
-  --text-secondary: #9ca3af;
+  --bg-dark: #f3f4f6; /* was #0a0a0f */
+  --surface-dark: #ffffff; /* was #12121a */
+  --surface-dark-2: #f9fafb; /* was #1a1a26 */
+  --text-primary: #111827; /* was #f9fafb */
+  --text-secondary: #6b7280; /* was #9ca3af */
 }
 
 * {
@@ -44,7 +44,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a26;
+  background: #e5e7eb; /* was #1a1a26 */
 }
 
 ::-webkit-scrollbar-thumb {
@@ -58,28 +58,36 @@ body {
 
 /* Glass morphism */
 .glass {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.7); /* was rgba(255,255,255,0.03) */
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06); /* was rgba(255,255,255,0.06) */
 }
 
 .glass-violet {
-  background: rgba(124, 58, 237, 0.08);
+  background: rgba(124, 58, 237, 0.06); /* was 0.08 */
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(124, 58, 237, 0.15); /* was 0.2 */
 }
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #a78bfa 0%, #f59e0b 100%);
+  background: linear-gradient(
+    135deg,
+    #7c3aed 0%,
+    #f59e0b 100%
+  ); /* was #a78bfa → #f59e0b */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-violet {
-  background: linear-gradient(135deg, #c4b5fd 0%, #7c3aed 100%);
+  background: linear-gradient(
+    135deg,
+    #7c3aed 0%,
+    #4c1d95 100%
+  ); /* was #c4b5fd → #7c3aed */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -88,14 +96,14 @@ body {
 /* Glow effects */
 .glow-violet {
   box-shadow:
-    0 0 20px rgba(124, 58, 237, 0.4),
-    0 0 60px rgba(124, 58, 237, 0.1);
+    0 0 20px rgba(124, 58, 237, 0.2),
+    /* was 0.4 */ 0 0 60px rgba(124, 58, 237, 0.05); /* was 0.1 */
 }
 
 .glow-amber {
   box-shadow:
-    0 0 20px rgba(245, 158, 11, 0.4),
-    0 0 60px rgba(245, 158, 11, 0.1);
+    0 0 20px rgba(245, 158, 11, 0.2),
+    /* was 0.4 */ 0 0 60px rgba(245, 158, 11, 0.05); /* was 0.1 */
 }
 
 /* Noise texture overlay */
@@ -176,19 +184,19 @@ body {
 .upload-zone:hover,
 .upload-zone.drag-over {
   border-color: #7c3aed !important;
-  background: rgba(124, 58, 237, 0.06) !important;
+  background: rgba(124, 58, 237, 0.04) !important; /* was 0.06 */
   transform: scale(1.01);
 }
 
 /* Light mode overrides */
 .light body {
-  background: #f9fafb;
+  background: #f3f4f6; /* was #f9fafb */
   color: #111827;
 }
 
 /* Recharts tooltip */
 .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background: #1a1a26 !important;
-  border: 1px solid rgba(124, 58, 237, 0.3) !important;
+  background: #ffffff !important; /* was #1a1a26 */
+  border: 1px solid rgba(124, 58, 237, 0.15) !important; /* was 0.3 */
   border-radius: 8px !important;
 }
